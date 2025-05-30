@@ -109,7 +109,7 @@ public struct GenmojiText: View {
         imageHeight: CGFloat = UIFont.preferredFont(forTextStyle: .largeTitle).lineHeight
     ) {
         if #available(iOS 18.0, *) {
-            let (plain, ranges, data) = Glyph.shared.decomposeNSAttributedString(attrStr)
+            let (plain, ranges, data) = Glyph.decomposeNSAttributedString(attrStr)
             print(
                 "[Genmoji Debug] GenmojiText.init: plain=‘\(plain)’", "ranges=\(ranges)",
                 "data keys=\(Array(data.keys))")
