@@ -13,9 +13,6 @@ import UIKit
 /// - Recomposing: `recomposeAttributedString(string:imageRanges:imageData:)`, `recomposeAttributedString(string:imageRanges:imageMap:)`
 /// - Inline Representation: ``Glyph/InlineComponent``
 public class Glyph {
-
-    @MainActor static let shared = Glyph()
-
     /// Represents a fragment of plain text or an inline image component in a decomposed attributed string.
     public enum InlineComponent {
         /// A plain text fragment.
@@ -35,7 +32,7 @@ public class Glyph {
 
      Use this to extract Genmoji from rich text for serialization, storage, or custom rendering.
      */
-    public func decomposeNSAttributedString(
+    public static func decomposeNSAttributedString(
         _ attrStr: NSAttributedString
     ) -> (String, [(NSRange, String)], [String: Data]) {
         let string = attrStr.string
@@ -71,7 +68,7 @@ public class Glyph {
 
      Use this to reconstruct a rich text representation from decomposed data.
      */
-    public func recomposeAttributedString(
+    public static func recomposeAttributedString(
         string: String,
         imageRanges: [(NSRange, String)],
         imageData: [String: Data]
@@ -107,11 +104,15 @@ public struct GenmojiText: View {
     private let imageHeight: CGFloat
 
     /// Initializes with an attributed string and optional image height.
-    public init(_ attrStr: NSAttributedString,
-                imageHeight: CGFloat = UIFont.preferredFont(forTextStyle: .largeTitle).lineHeight) {
+    public init(
+        _ attrStr: NSAttributedString,
+        imageHeight: CGFloat = UIFont.preferredFont(forTextStyle: .largeTitle).lineHeight
+    ) {
         if #available(iOS 18.0, *) {
             let (plain, ranges, data) = Glyph.shared.decomposeNSAttributedString(attrStr)
-            print("[Genmoji Debug] GenmojiText.init: plain=‘\(plain)’", "ranges=\(ranges)", "data keys=\(Array(data.keys))")
+            print(
+                "[Genmoji Debug] GenmojiText.init: plain=‘\(plain)’", "ranges=\(ranges)",
+                "data keys=\(Array(data.keys))")
             var comps: [Glyph.InlineComponent] = []
             var currentIndex = 0
 
@@ -121,7 +122,9 @@ public struct GenmojiText: View {
                 // Text before the glyph
                 let prefixLen = range.location - currentIndex
                 if prefixLen > 0,
-                   let textRange = Range(NSRange(location: currentIndex, length: prefixLen), in: plain) {
+                    let textRange = Range(
+                        NSRange(location: currentIndex, length: prefixLen), in: plain)
+                {
                     comps.append(.text(String(plain[textRange])))
                 }
                 // Inline image
@@ -132,8 +135,11 @@ public struct GenmojiText: View {
             }
             // Remaining text
             if currentIndex < plain.count,
-               let restRange = Range(NSRange(location: currentIndex,
-                                              length: plain.count - currentIndex), in: plain) {
+                let restRange = Range(
+                    NSRange(
+                        location: currentIndex,
+                        length: plain.count - currentIndex), in: plain)
+            {
                 comps.append(.text(String(plain[restRange])))
             }
             self.components = comps
